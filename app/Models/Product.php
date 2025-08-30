@@ -6,11 +6,9 @@ use Illuminate\Database\Eloquent\Model;
 
 class Product extends Model
 {
-    protected $fillable = ['category_id','title','description','price','stock','raw_payload'];
+    protected $fillable = ['external_id','category_id','title','description','price','stock','raw_payload'];
+    protected $casts = ['raw_payload' => 'array'];
 
-    protected $casts = [
-        'raw_payload' => 'array',
-    ];
 
     public function category()
     {

@@ -14,6 +14,12 @@ return [
     |
     */
 
+
+    'platzi' => [
+        'base' => env('PLATZI_API_BASE', 'https://api.escuelajs.co/api/v1'),
+    ],
+
+
     'postmark' => [
         'token' => env('POSTMARK_TOKEN'),
     ],
