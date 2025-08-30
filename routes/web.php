@@ -4,10 +4,18 @@ use App\Http\Controllers\CartController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\ReportController;
 
-Route::get('/', function () {
+
+    Route::get('/', function () {
     return auth()->check() ? redirect('/shop') : view('welcome');
 });
+
+    //Reportes
+    Route::get('/reports/sales/pdf', [ReportController::class, 'salesPdf'])
+    ->name('reports.sales.pdf')
+    ->middleware('auth');
+
 
     // Shopp
     Route::get('/shop', [ShopController::class, 'index'])
