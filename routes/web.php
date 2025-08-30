@@ -32,13 +32,16 @@ Route::get('/dashboard', function () {
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 
-Route::get('/checkout', [CheckoutController::class, 'index'])
-    ->middleware(['auth'])
-    ->name('checkout.index');
+// Opción 1: Ruta GET para mostrar el checkout
+Route::get('/checkout', [CheckoutController::class, 'show'])->name('checkout.show')->middleware('auth');
 
-Route::post('/checkout/pay', [CheckoutController::class, 'pay'])
-    ->middleware(['auth'])
-    ->name('checkout.pay');
+// Opción 2: Ruta POST para procesar el pago
+Route::post('/checkout/process', [CheckoutController::class, 'process'])->name('checkout.process')->middleware('auth');
+
+// Opción 3: Tu ruta original (asegúrate de que exista)
+Route::post('/checkout/pay', [CheckoutController::class, 'pay'])->name('checkout.pay')->middleware('auth');
+
+Route::get('/checkout/success', [App\Http\Controllers\CheckoutController::class, 'success'])->name('checkout.success');
 
 
 
