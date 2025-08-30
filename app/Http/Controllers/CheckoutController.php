@@ -2,139 +2,155 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Cart;
+use App\Models\Order;
+use App\Models\OrderItem;
+use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Session;
 
 class CheckoutController extends Controller
 {
-    /**
-     * Mostrar la página de checkout
-     */
-    public function show()
+    public function index()
     {
-        // Obtener el carrito según el tipo de usuario (igual que CartController)
-        if (Auth::check()) {
-            // Usuario autenticado - carrito desde BD
-            $cartItems = \App\Models\Cart::with('product.images')
-                ->where('user_id', Auth::id())
-                ->get();
-            
-            $cart = [];
-            foreach ($cartItems as $item) {
-                $cart[$item->product_id] = [
-                    "name" => $item->product->name,
-                    "quantity" => $item->quantity,
-                    "price" => $item->product->price,
-                    "image" => $item->product->images->first()->url ?? null,
-                    "product" => $item->product
-                ];
-            }
-        } else {
-            // Usuario guest - carrito desde session
-            $cart = session('cart', []);
-        }
-        
-        // Verificar que el carrito no esté vacío
+        $cart = $this->getCart();
         if (empty($cart)) {
-            return redirect()->route('cart.index')->with('error', 'Tu carrito está vacío');
+            return redirect()->route('shop.index')->with('error', 'El carrito está vacío.');
         }
-        
-        // Calcular totales
-        $subtotal = 0;
-        foreach ($cart as $item) {
-            $subtotal += $item['price'] * $item['quantity'];
-        }
-        
-        $tax = $subtotal * 0.13; // 13% impuesto en Costa Rica
-        $shipping = 2000; // ₡2000 de envío (puedes hacer esto dinámico)
-        $total = $subtotal + $tax + $shipping;
-        
-        return view('checkout.index', compact('cart', 'subtotal', 'tax', 'shipping', 'total'));
+
+        [$subtotal, $tax, $shipping, $total] = $this->totalsFromCart($cart);
+
+        return view('checkout.index', compact('cart','subtotal','tax','shipping','total'));
     }
-    
-    /**
-     * Procesar el pago (método POST)
-     */
-    public function process(Request $request)
+
+    public function createOrder(Request $request)
     {
-        // Validar datos del formulario
-        $request->validate([
-            'cart_data' => 'required',
-            'total' => 'required|numeric|min:0'
-        ]);
-        
-        // Obtener carrito según el tipo de usuario
-        if (Auth::check()) {
-            // Usuario autenticado - carrito desde BD
-            $cartItems = \App\Models\Cart::with('product')->where('user_id', Auth::id())->get();
-            $cart = [];
-            foreach ($cartItems as $item) {
-                $cart[$item->product_id] = [
-                    "name" => $item->product->name,
-                    "quantity" => $item->quantity,
-                    "price" => $item->product->price,
-                    "product" => $item->product
-                ];
-            }
-        } else {
-            // Usuario guest - carrito desde session
-            $cart = session('cart', []);
-        }
-        
+        $cart = $this->getCart();
+
         if (empty($cart)) {
-            return redirect()->route('cart.index')->with('error', 'Tu carrito está vacío');
+            return redirect()->route('shop.index')->with('error', 'Carrito vacío.');
         }
-        
-        // Aquí procesarías el pago con tu gateway de pago
-        // Por ahora simulamos un pago exitoso
-        
-        // Limpiar el carrito después del pago exitoso
+
+        [$subtotal, $tax, $shipping, $total] = $this->totalsFromCart($cart);
+
+        $order = Order::create([
+            'user_id'        => Auth::id() ?? 1,
+            'status'         => 'pending',
+            'subtotal'       => $subtotal,
+            'tax'            => $tax,
+            'shipping'       => $shipping,
+            'total'          => $total,
+            'payment_method' => 'fake',
+            'reference'      => 'ORD' . now()->timestamp,
+        ]);
+
+        foreach ($cart as $pid => $item) {
+            OrderItem::create([
+                'order_id'   => $order->id,
+                'product_id' => (int) $pid,
+                'title'      => $item['name'] ?? $item['title'] ?? 'Producto',
+                'unit_price' => $item['price'],
+                'quantity'   => $item['quantity'],
+                'line_total' => $item['price'] * $item['quantity'],
+            ]);
+        }
+
         if (Auth::check()) {
-            \App\Models\Cart::where('user_id', Auth::id())->delete();
+            Cart::where('user_id', Auth::id())->delete();
         } else {
             session()->forget('cart');
         }
-        
-        return redirect()->route('checkout.success')->with('success', 'Pago procesado exitosamente');
+
+        session()->put('last_order_id', $order->id);
+
+        return redirect()->route('cart.checkout.pay');
     }
-    
-    /**
-     * Método alternativo para el pago (si prefieres usar este nombre)
-     */
-    public function pay(Request $request)
+
+    public function payForm()
     {
-        // Obtener carrito según el tipo de usuario
+        $order = Order::find(session('last_order_id'));
+
+        if (! $order) {
+            return redirect()->route('cart.checkout')->with('error', 'No hay pedido para pagar.');
+        }
+
+        if ($order->status !== 'pending') {
+            return redirect()->route('cart.checkout.success');
+        }
+
+        return view('checkout.pay', compact('order'));
+    }
+
+    public function processFakePayment(Request $request)
+    {
+        $order = Order::find(session('last_order_id'));
+
+        if (! $order || $order->status !== 'pending') {
+            return redirect()->route('shop.index')->with('error', 'Pedido inválido.');
+        }
+
+        $validated = $request->validate([
+            'card_name'   => ['required','string','max:100'],
+            'card_number' => ['required','digits_between:13,19'],
+            'exp_month'   => ['required','integer','between:1,12'],
+            'exp_year'    => ['required','integer','min:' . now()->year, 'max:' . (now()->year + 10)],
+            'cvc'         => ['required','digits_between:3,4'],
+        ]);
+
+        $lastDigit = substr($validated['card_number'], -1);
+        $approved = ((int) $lastDigit % 2) === 0;
+
+        if (! $approved) {
+            return redirect()->route('cart.checkout.failed')
+                ->with('error', 'Pago rechazado (simulado). Intenta con otra tarjeta.');
+        }
+
+        foreach ($order->items as $item) {
+            if ($item->product) {
+                $item->product->decrement('stock', $item->quantity);
+            }
+        }
+
+        $order->update(['status' => 'paid']);
+
+        session()->forget('last_order_id');
+
+        return redirect()->route('cart.checkout.success')->with('success', 'Pago aprobado (simulado).');
+    }
+
+    public function success() { return view('checkout.success'); }
+    public function failed()  { return view('checkout.failed');  }
+    public function cancel()  { return redirect()->route('cart.index')->with('error', 'Pago cancelado.'); }
+
+    private function getCart(): array
+    {
         if (Auth::check()) {
-            // Usuario autenticado - carrito desde BD
-            $cartItems = \App\Models\Cart::with('product')->where('user_id', Auth::id())->get();
+            $items = Cart::with(['product.images' => fn($q) => $q->orderBy('position')])
+                ->where('user_id', Auth::id())
+                ->get();
+
             $cart = [];
-            foreach ($cartItems as $item) {
-                $cart[$item->product_id] = [
-                    "name" => $item->product->name,
-                    "quantity" => $item->quantity,
-                    "price" => $item->product->price,
-                    "product" => $item->product
+            foreach ($items as $i) {
+                if (! $i->product) continue;
+                $cart[$i->product_id] = [
+                    'name'     => $i->product->title,
+                    'price'    => $i->product->price,
+                    'quantity' => $i->quantity,
+                    'image'    => optional($i->product->images->first())->url,
                 ];
             }
-        } else {
-            // Usuario guest - carrito desde session
-            $cart = session('cart', []);
+            return $cart;
         }
-        
-        if (empty($cart)) {
-            return redirect()->route('cart.index')->with('error', 'Tu carrito está vacío');
-        }
-        
-        // Redirigir al checkout normal
-        return redirect()->route('checkout.show');
+
+        return session()->get('cart', []);
     }
-    
-    /**
-     * Página de éxito después del pago
-     */
-    public function success()
+
+    private function totalsFromCart(array $cart): array
     {
-        return view('checkout.success');
+        $subtotal = collect($cart)->sum(fn($i) => $i['price'] * $i['quantity']);
+        $tax      = round($subtotal * 0.13, 2);
+        $shipping = 2500;
+        $total    = $subtotal + $tax + $shipping;
+        return [$subtotal, $tax, $shipping, $total];
     }
 }

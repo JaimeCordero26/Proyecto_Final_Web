@@ -11,11 +11,12 @@ class Product extends Model
     protected $casts = ['raw_payload' => 'array'];
 
 
-    public function category()
-    {
-        return $this->belongsTo(Category::class);
-    }
-
+public function category()
+{
+    return $this->belongsTo(Category::class)->withDefault([
+        'name' => 'Sin categoría'
+    ]);
+}
     public function images()
     {
         return $this->hasMany(ProductImage::class);
@@ -24,4 +25,5 @@ class Product extends Model
     {
         return $this->hasMany(Cart::class);
     }
+    
 }

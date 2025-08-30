@@ -32,32 +32,51 @@ class ProductResource extends \Filament\Resources\Resource
             TextInput::make('price')->numeric()->minValue(0)->required(),
             TextInput::make('stock')->numeric()->minValue(0)->default(0),
 
-            Repeater::make('images')
-                ->relationship() // usa hasMany(ProductImage)
+            Repeater::make('image_urls')
                 ->schema([
-                    TextInput::make('url')->url()->required()->label('Image URL'),
-                    TextInput::make('position')->numeric()->default(1),
+                    TextInput::make('url')
+                        ->url()
+                        ->required()
+                        ->label('URL de Imagen'),
                 ])
-                ->orderable('position')
+                ->label('URLs de Imágenes')
                 ->collapsible()
-                ->grid(2)
-                ->label('Imágenes'),
+                ->addActionLabel('Agregar Imagen')
+                ->afterStateUpdated(function ($state, $set) {
+                    $urls = collect($state)->pluck('url')->filter()->values()->toArray();
+                    $set('raw_payload', ['images' => $urls]);
+                }),
+            Forms\Components\Hidden::make('raw_payload')
         ]);
     }
 
     public static function table(Table $table): Table
     {
         return $table->columns([
-            TextColumn::make('id')->sortable(),
-            TextColumn::make('title')->searchable()->limit(40)->sortable(),
-            TextColumn::make('category.name')->label('Category')->sortable()->searchable(),
-            TextColumn::make('price')->money('USD', true)->sortable(), // cambia a CRC si quieres
-            TextColumn::make('stock')->sortable(),
+            TextColumn::make('id')
+                ->sortable(),
+            TextColumn::make('title')
+                ->searchable()
+                ->limit(40)
+                ->sortable(),
+            TextColumn::make('category.name')
+                ->label('Category')
+                ->sortable()
+                ->searchable(),
+            TextColumn::make('price')
+                ->money('CRC', true)
+                ->sortable(),
+            TextColumn::make('stock')
+                ->sortable(),
             TextColumn::make('images_count')
-                ->counts('images')   // cuenta relación
+                ->counts('images') 
                 ->label('Imgs')
                 ->sortable(),
-            TextColumn::make('created_at')->dateTime()->since()->label('Creado'),
+            TextColumn::make('created_at')
+            ->dateTime()
+            ->since()
+            ->label('Creado'),
+
         ])->defaultSort('id', 'desc')
           ->filters([
               Tables\Filters\SelectFilter::make('category_id')->relationship('category', 'name')->label('Category'),

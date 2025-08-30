@@ -15,7 +15,6 @@ class CartController extends Controller
     public function index()
     {
         if (Auth::check()) {
-            // Usuario autenticado - carrito desde BD
             $cartItems = Cart::with('product.images')
                 ->where('user_id', Auth::id())
                 ->get();
@@ -23,7 +22,7 @@ class CartController extends Controller
             $cart = [];
             foreach ($cartItems as $item) {
                 $cart[$item->product_id] = [
-                    "name" => $item->product->name,
+                    "name" => $item->product->title,
                     "quantity" => $item->quantity,
                     "price" => $item->product->price,
                     "image" => $item->product->images->first()->url ?? null,
@@ -31,11 +30,9 @@ class CartController extends Controller
                 ];
             }
         } else {
-            // Usuario guest - carrito desde session
             $cart = session()->get('cart', []);
         }
 
-        // Calcular totales para la vista
         $subtotal = collect($cart)->sum(fn($i) => $i['price'] * $i['quantity']);
         $tax = $subtotal * 0.13;
         $shipping = 2500;
@@ -60,14 +57,13 @@ class CartController extends Controller
             
             $message = 'Producto agregado al carrito!';
         } else {
-            // Usuario guest - guardar en session
             $cart = session()->get('cart', []);
 
             if (isset($cart[$product->id])) {
                 $cart[$product->id]['quantity']++;
             } else {
                 $cart[$product->id] = [
-                    "name" => $product->name,
+                    "name" => $product->title,
                     "quantity" => 1,
                     "price" => $product->price,
                     "image" => $product->images->first()->url ?? null,
@@ -85,12 +81,10 @@ class CartController extends Controller
     public function remove(Product $product)
     {
         if (Auth::check()) {
-            // Usuario autenticado - eliminar de BD
             Cart::where('user_id', Auth::id())
                 ->where('product_id', $product->id)
                 ->delete();
         } else {
-            // Usuario guest - eliminar de session
             $cart = session()->get('cart', []);
             if (isset($cart[$product->id])) {
                 unset($cart[$product->id]);
@@ -108,7 +102,6 @@ class CartController extends Controller
         ]);
 
         if (Auth::check()) {
-            // Usuario autenticado - actualizar en BD
             if ($request->quantity == 0) {
                 Cart::where('user_id', Auth::id())
                     ->where('product_id', $product->id)
@@ -125,7 +118,6 @@ class CartController extends Controller
                 );
             }
         } else {
-            // Usuario guest - actualizar en session
             $cart = session()->get('cart', []);
             if (isset($cart[$product->id])) {
                 if ($request->quantity == 0) {
@@ -145,7 +137,6 @@ class CartController extends Controller
         $cart = session()->get('cart', []);
         
         if (Auth::check()) {
-            // Para usuarios autenticados, obtener el carrito de la BD
             $cartItems = Cart::with('product')->where('user_id', Auth::id())->get();
             $cart = [];
             foreach ($cartItems as $item) {
@@ -166,7 +157,6 @@ class CartController extends Controller
 
     public function processCheckout(Request $request)
     {
-        // Validación de datos del checkout
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email',
@@ -176,7 +166,6 @@ class CartController extends Controller
             'payment_method' => 'required|in:cash,card'
         ]);
 
-        // Obtener carrito
         $cart = [];
         if (Auth::check()) {
             $cartItems = Cart::with('product')->where('user_id', Auth::id())->get();
@@ -194,14 +183,10 @@ class CartController extends Controller
         if (empty($cart)) {
             return redirect()->route('shop.index')->with('error', 'El carrito está vacío.');
         }
-
-        // Calcular totales
         $subtotal = collect($cart)->sum(fn($item) => $item['price'] * $item['quantity']);
         $tax = $subtotal * 0.13;
         $shipping = 2500;
         $total = $subtotal + $tax + $shipping;
-
-        // Crear orden
         $order = Order::create([
             'user_id' => Auth::id(),
             'customer_name' => $request->name,
@@ -218,7 +203,6 @@ class CartController extends Controller
             'reference' => 'ORD' . time() . rand(1000, 9999),
         ]);
 
-        // Crear items de la orden
         foreach ($cart as $productId => $item) {
             OrderItem::create([
                 'order_id' => $order->id,
@@ -229,7 +213,6 @@ class CartController extends Controller
             ]);
         }
 
-        // Limpiar carrito
         if (Auth::check()) {
             Cart::where('user_id', Auth::id())->delete();
         } else {
