@@ -15,14 +15,11 @@ class ProductImage extends Model
             get: fn () => $this->getFullUrl()
         );
     }
-
     public function getFullUrl()
     {
-
         if (str_starts_with($this->url, 'http')) {
             return $this->url;
         }
-
         return Storage::disk('public')->url($this->url);
     }
 
