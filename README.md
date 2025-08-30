@@ -82,38 +82,312 @@ Este proyecto consiste en el desarrollo de una tienda virtual completa utilizand
 ---
 
 ## 📦 Estructura del Proyecto
-ProyectoFinal/
-├── app/
-│ ├── Filament/ # Recursos del panel administrativo
-│ ├── Http/
-│ │ ├── Controllers/ # Controladores de la aplicación
-│ │ └── Middleware/ # Middlewares personalizados
-│ ├── Models/ # Modelos Eloquent
-│ ├── Policies/ # Políticas de autorización
-│ ├── Providers/ # Service Providers
-│ └── Services/ # Servicios de negocio
-├── bootstrap/
-│ ├── app.php # Inicialización de la aplicación
-│ └── cache/ # Cache de la aplicación
-├── config/ # Archivos de configuración
-├── database/
-│ ├── migrations/ # Migraciones de base de datos
-│ ├── seeders/ # Seeders para datos de prueba
-│ └── factories/ # Factories para testing
-├── public/ # Archivos públicos accesibles
-│ ├── css/ # Stylesheets compilados
-│ ├── js/ # JavaScript compilado
-│ └── storage/ # Enlace simbólico a storage
-├── resources/
-│ ├── views/ # Vistas Blade
-│ ├── css/ # CSS fuente (Tailwind)
-│ └── js/ # JavaScript fuente
-├── routes/ # Definición de rutas
-├── storage/ # Almacenamiento de archivos
-├── tests/ # Pruebas automatizadas
-├── vendor/ # Dependencias de Composer
-└── vite.config.js # Configuración de Vite
+´´´
+├── app
+│   ├── Console
+│   ├── Events
+│   ├── Filament
+│   ├── Http
+│   ├── Listeners
+│   ├── Livewire
+│   ├── Models
+│   ├── Policies
+│   ├── Providers
+│   └── View
+├── artisan
+├── bootstrap
+│   ├── app.php
+│   ├── cache
+│   └── providers.php
+├── composer.json
+├── composer.lock
+├── config
+│   ├── app.php
+│   ├── auth.php
+│   ├── cache.php
+│   ├── database.php
+│   ├── dompdf.php
+│   ├── filesystems.php
+│   ├── logging.php
+│   ├── mail.php
+│   ├── permission.php
+│   ├── queue.php
+│   ├── services.php
+│   └── session.php
+├── database
+│   ├── database.sqlite
+│   ├── factories
+│   ├── migrations
+│   └── seeders
+├── node_modules
+│   ├── @alloc
+│   ├── alpinejs
+│   ├── @ampproject
+│   ├── ansi-regex
+│   ├── ansi-styles
+│   ├── anymatch
+│   ├── any-promise
+│   ├── arg
+│   ├── asynckit
+│   ├── autoprefixer
+│   ├── axios
+│   ├── balanced-match
+│   ├── binary-extensions
+│   ├── brace-expansion
+│   ├── braces
+│   ├── browserslist
+│   ├── call-bind-apply-helpers
+│   ├── camelcase-css
+│   ├── caniuse-lite
+│   ├── chalk
+│   ├── chokidar
+│   ├── chownr
+│   ├── cliui
+│   ├── color-convert
+│   ├── color-name
+│   ├── combined-stream
+│   ├── commander
+│   ├── concurrently
+│   ├── cross-spawn
+│   ├── cssesc
+│   ├── delayed-stream
+│   ├── detect-libc
+│   ├── didyoumean
+│   ├── dlv
+│   ├── dunder-proto
+│   ├── eastasianwidth
+│   ├── electron-to-chromium
+│   ├── emoji-regex
+│   ├── enhanced-resolve
+│   ├── @esbuild
+│   ├── esbuild
+│   ├── escalade
+│   ├── es-define-property
+│   ├── es-errors
+│   ├── es-object-atoms
+│   ├── es-set-tostringtag
+│   ├── fast-glob
+│   ├── fastq
+│   ├── fdir
+│   ├── fill-range
+│   ├── follow-redirects
+│   ├── foreground-child
+│   ├── form-data
+│   ├── fraction.js
+│   ├── function-bind
+│   ├── get-caller-file
+│   ├── get-intrinsic
+│   ├── get-proto
+│   ├── glob
+│   ├── glob-parent
+│   ├── gopd
+│   ├── graceful-fs
+│   ├── has-flag
+│   ├── hasown
+│   ├── has-symbols
+│   ├── has-tostringtag
+│   ├── @isaacs
+│   ├── is-binary-path
+│   ├── is-core-module
+│   ├── isexe
+│   ├── is-extglob
+│   ├── is-fullwidth-code-point
+│   ├── is-glob
+│   ├── is-number
+│   ├── jackspeak
+│   ├── jiti
+│   ├── @jridgewell
+│   ├── laravel-vite-plugin
+│   ├── lightningcss
+│   ├── lightningcss-linux-x64-gnu
+│   ├── lightningcss-linux-x64-musl
+│   ├── lilconfig
+│   ├── lines-and-columns
+│   ├── lodash
+│   ├── lru-cache
+│   ├── magic-string
+│   ├── math-intrinsics
+│   ├── merge2
+│   ├── micromatch
+│   ├── mime-db
+│   ├── mime-types
+│   ├── minimatch
+│   ├── minipass
+│   ├── mini-svg-data-uri
+│   ├── minizlib
+│   ├── mkdirp
+│   ├── mz
+│   ├── nanoid
+│   ├── @nodelib
+│   ├── node-releases
+│   ├── normalize-path
+│   ├── normalize-range
+│   ├── object-assign
+│   ├── object-hash
+│   ├── package-json-from-dist
+│   ├── path-key
+│   ├── path-parse
+│   ├── path-scurry
+│   ├── picocolors
+│   ├── picomatch
+│   ├── pify
+│   ├── pirates
+│   ├── postcss
+│   ├── postcss-import
+│   ├── postcss-js
+│   ├── postcss-load-config
+│   ├── postcss-nested
+│   ├── postcss-selector-parser
+│   ├── postcss-value-parser
+│   ├── proxy-from-env
+│   ├── queue-microtask
+│   ├── read-cache
+│   ├── readdirp
+│   ├── require-directory
+│   ├── resolve
+│   ├── reusify
+│   ├── @rollup
+│   ├── rollup
+│   ├── run-parallel
+│   ├── rxjs
+│   ├── shebang-command
+│   ├── shebang-regex
+│   ├── shell-quote
+│   ├── signal-exit
+│   ├── source-map-js
+│   ├── string-width
+│   ├── string-width-cjs
+│   ├── strip-ansi
+│   ├── strip-ansi-cjs
+│   ├── sucrase
+│   ├── supports-color
+│   ├── supports-preserve-symlinks-flag
+│   ├── @tailwindcss
+│   ├── tailwindcss
+│   ├── tapable
+│   ├── tar
+│   ├── thenify
+│   ├── thenify-all
+│   ├── tinyglobby
+│   ├── to-regex-range
+│   ├── tree-kill
+│   ├── ts-interface-checker
+│   ├── tslib
+│   ├── @types
+│   ├── update-browserslist-db
+│   ├── util-deprecate
+│   ├── vite
+│   ├── vite-plugin-full-reload
+│   ├── @vue
+│   ├── which
+│   ├── wrap-ansi
+│   ├── wrap-ansi-cjs
+│   ├── y18n
+│   ├── yallist
+│   ├── yaml
+│   ├── yargs
+│   └── yargs-parser
+├── package.json
+├── package-lock.json
+├── phpunit.xml
+├── postcss.config.js
+├── public
+│   ├── apple-touch-icon.png
+│   ├── build
+│   ├── css
+│   ├── favicon.ico
+│   ├── favicon.svg
+│   ├── hot
+│   ├── images
+│   ├── index.php
+│   ├── js
+│   ├── robots.txt
+│   └── storage -> /home/alecor/Documents/aaaaa/Proyecto_Final_Web/storage/app/public
+├── README.md
+├── resources
+│   ├── css
+│   ├── js
+│   └── views
+├── routes
+│   ├── auth.php
+│   ├── console.php
+│   └── web.php
+├── storage
+│   ├── app
+│   ├── framework
+│   └── logs
+├── tailwind.config.js
+├── tests
+│   ├── Feature
+│   ├── Pest.php
+│   ├── TestCase.php
+│   └── Unit
+├── vendor
+│   ├── anourvalar
+│   ├── autoload.php
+│   ├── barryvdh
+│   ├── bezhansalleh
+│   ├── bin
+│   ├── blade-ui-kit
+│   ├── brianium
+│   ├── brick
+│   ├── carbonphp
+│   ├── composer
+│   ├── danharrin
+│   ├── dflydev
+│   ├── doctrine
+│   ├── dompdf
+│   ├── dragonmantank
+│   ├── egulias
+│   ├── fakerphp
+│   ├── fidry
+│   ├── filament
+│   ├── filp
+│   ├── fruitcake
+│   ├── graham-campbell
+│   ├── guzzlehttp
+│   ├── hamcrest
+│   ├── jean85
+│   ├── kirschbaum-development
+│   ├── laravel
+│   ├── league
+│   ├── livewire
+│   ├── masterminds
+│   ├── mockery
+│   ├── monolog
+│   ├── myclabs
+│   ├── nesbot
+│   ├── nette
+│   ├── nikic
+│   ├── nunomaduro
+│   ├── openspout
+│   ├── pestphp
+│   ├── pest-plugins.json
+│   ├── phar-io
+│   ├── phpdocumentor
+│   ├── phpoption
+│   ├── phpstan
+│   ├── phpunit
+│   ├── psr
+│   ├── psy
+│   ├── ralouphie
+│   ├── ramsey
+│   ├── ryangjchandler
+│   ├── sabberworm
+│   ├── sebastian
+│   ├── spatie
+│   ├── staabm
+│   ├── stripe
+│   ├── symfony
+│   ├── ta-tikoma
+│   ├── theseer
+│   ├── tijsverkoyen
+│   ├── vlucas
+│   ├── voku
+│   └── webmozart
+└── vite.config.js
 
+´´´
 
 ```bash
 # Instalar dependencias de Composer y Node.js
