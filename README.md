@@ -82,7 +82,7 @@ Este proyecto consiste en el desarrollo de una tienda virtual completa utilizand
 ---
 
 ## 📦 Estructura del Proyecto
-´´´
+```
 ├── app
 │   ├── Console
 │   ├── Events
@@ -387,11 +387,15 @@ Este proyecto consiste en el desarrollo de una tienda virtual completa utilizand
 │   └── webmozart
 └── vite.config.js
 
-´´´
+```
 
 ```bash
 # Instalar dependencias de Composer y Node.js
 composer install
+npm install
+
+# En caso de no tener vite
+npm install --save-dev vite laravel-vite-plugin
 npm install
 
 # Copiar archivo de entorno
