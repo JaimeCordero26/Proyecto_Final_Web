@@ -1,46 +1,57 @@
 <?php
-
-use App\Livewire\Settings\Appearance;
-use App\Livewire\Settings\Password;
-use App\Livewire\Settings\Profile;
-use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ShopController;
 use App\Http\Controllers\CartController;
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CheckoutController;
-use App\Http\Controllers\StripeWebhookController;
 
+use App\Http\Controllers\ProfileController;
+use Illuminate\Support\Facades\Route;
+
+// Redirigir a shop si está autenticado, sino mostrar welcome
 Route::get('/', function () {
+    if (auth()->check()) {
+        return redirect('/shop');
+    }
     return view('welcome');
-})->name('home');
-
-Route::view('dashboard', 'dashboard')
-    ->middleware(['auth', 'verified'])
-    ->name('dashboard');
-
-Route::middleware(['auth'])->group(function () {
-    Route::redirect('settings', 'settings/profile');
-
-    Route::get('settings/profile', Profile::class)->name('settings.profile');
-    Route::get('settings/password', Password::class)->name('settings.password');
-    Route::get('settings/appearance', Appearance::class)->name('settings.appearance');
 });
 
-Route::middleware(['auth'])->get('/admin/reports/sales/pdf', [ReportController::class, 'salesPdf'])
-    ->name('reports.sales.pdf');
+// Rutas del carrito
+Route::post('/cart/add/{product}', [CartController::class, 'add'])
+    ->middleware(['auth'])
+    ->name('cart.add');
 
-    // Catálogo y productos
-Route::get('/', [ShopController::class, 'index'])->name('shop.index');
-Route::get('/product/{product}', [ShopController::class, 'show'])->name('shop.show');
+Route::get('/cart', [CartController::class, 'index'])
+    ->middleware(['auth'])
+    ->name('cart.index');
 
-// Carrito
-Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
-Route::post('/cart/add/{product}', [CartController::class, 'add'])->name('cart.add');
-Route::post('/cart/remove/{product}', [CartController::class, 'remove'])->name('cart.remove');
-Route::post('/cart/update/{product}', [CartController::class, 'update'])->name('cart.update');
+Route::delete('/cart/{product}', [CartController::class, 'remove'])
+    ->middleware(['auth'])
+    ->name('cart.remove');
+
+Route::get('/dashboard', function () {
+    return view('dashboard');
+})->middleware(['auth', 'verified'])->name('dashboard');
+
+
+Route::get('/checkout', [CheckoutController::class, 'index'])
+    ->middleware(['auth'])
+    ->name('checkout.index');
+
+Route::post('/checkout/pay', [CheckoutController::class, 'pay'])
+    ->middleware(['auth'])
+    ->name('checkout.pay');
 
 
 
 
+
+Route::get('/shop', [ShopController::class, 'index'])
+    ->middleware(['auth', 'verified'])
+    ->name('shop.index'); 
+
+Route::middleware('auth')->group(function () {
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+});
 
 require __DIR__.'/auth.php';

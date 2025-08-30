@@ -7,6 +7,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
 use Spatie\Permission\Traits\HasRoles; // ⬅️ NUEVO
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class User extends Authenticatable
 {
@@ -46,7 +47,18 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+     public function cart(): HasMany
+    {
+        return $this->hasMany(Cart::class);
+    }
 
+    /**
+     * Get the orders for the user.
+     */
+    public function orders(): HasMany
+    {
+        return $this->hasMany(Order::class);
+    }
     /**
      * Get the user's initials
      */
