@@ -9,10 +9,10 @@
 **Valor:** 30% de la calificación final  
 
 **Integrantes del Grupo:**
-DANIEL SABORIO
-ALEJANDRO CORDERO
-CRISTIAN ROJAS
-RAUL
+DANIEL SABORIO- 
+ALEJANDRO CORDERO- 
+CRISTIAN ROJAS- 
+RAUL Quesada
 ---
 
 ## 🎯 Descripción del Proyecto
